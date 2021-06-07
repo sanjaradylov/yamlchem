@@ -1,0 +1,14 @@
+name: yamlchem
+channels:
+  - dglteam
+  - conda-forge
+dependencies:
+  - python=3.8
+  - pip
+  - dgl
+  - rdkit
+  - scikit-learn
+  - pip:
+    - mxnet
+    - pytest
+    - pylint

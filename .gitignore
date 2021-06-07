@@ -1,0 +1,9 @@
+**/__pycache__/*
+**/.idea/*
+*.log
+**/.ipynb_checkpoints/*
+/*.egg-info
+/*.egg
+**/.pytest_cache/*
+/dist/
+/notebooks/*
