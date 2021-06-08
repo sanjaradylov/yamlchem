@@ -210,7 +210,7 @@ class Vocabulary(Collection):
       sorted_counter: List[Tuple[str, int]] = sorted(
           token_counter.items(), key=itemgetter(1))
       redundant_tokens: FrozenSet[str] = frozenset(
-          t for t, c in sorted_counter[:-max_size])
+          t for t, c in sorted_counter[:-max_size])  # pylint: disable=invalid-unary-operand-type
     else:
       redundant_tokens = frozenset()
 
