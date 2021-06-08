@@ -1,6 +1,9 @@
-name: YAMLChem Package
+name: build
 
 on: [push, pull_request]
+
+env:
+  DGLBACKEND: mxnet
 
 jobs:
   build-linux:

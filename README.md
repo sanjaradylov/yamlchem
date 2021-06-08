@@ -20,14 +20,14 @@ computational chemistry.
 >>> optimizer = mx.optimizer.Adam(learning_rate=0.01, lr_scheduler=lr_scheduler)
 >>> metric = mx.metric.RMSE(name='RMSE')
 >>> gcn = yc.nn.block.graph.GCN(
-    yc.feature.graph.N_DEFAULT_ATOM_FEATURES, hidden_dim=64, n_layers=2,
-    activation='relu', norm='both', dropout=0.2, batchnorm=True, residual=True)
+...     yc.feature.graph.N_DEFAULT_ATOM_FEATURES, hidden_dim=64, n_layers=2,
+...     activation='relu', norm='both', dropout=0.2, batchnorm=True, residual=True)
 >>> readout = yc.nn.block.graph.WeightSum()
 >>> predictor = yc.nn.block.graph.NodeGNNPredictor(gcn, readout, 1)
 >>> yc.nn.model.train_gnn_predictor(
 ...     gnn=predictor, feature_name='h', dataloader=dataloader, loss_fn=loss_fn,
-        n_epochs=50, optimizer=optimizer, metric=metric, validation_fraction=0.2,
-        verbose=10)
+...     n_epochs=50, optimizer=optimizer, metric=metric, validation_fraction=0.2,
+...     verbose=10)
 Using backend: mxnet
 Epoch: 10, Time: 0:00:02, T.MSE: 0.409, V.MSE: 0.313, T.RMSE: 0.918, V.RMSE: 0.706
 Epoch: 20, Time: 0:00:02, T.MSE: 0.239, V.MSE: 0.191, T.RMSE: 0.656, V.RMSE: 0.627
