@@ -38,12 +38,10 @@ Epoch: 50, Time: 0:00:02, T.MSE: 0.129, V.MSE: 0.098, T.RMSE: 0.509, V.RMSE: 0.4
 
 ## Installation
 
----
-
 ### Dependencies
 
-yamlchem requires MXNet 1.7+ for deep learning, DGL 0.6+ for graph processing,
-and RDKit for chemistry.
+yamlchem requires [MXNet](mxnet.apache.org) 1.7+ for deep learning,
+[DGL](dgl.ai) 0.6+ for graph processing, and [RDKit](rdkit.org) for chemistry.
 
 ### Conda Installation
 

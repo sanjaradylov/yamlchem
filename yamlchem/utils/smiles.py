@@ -29,6 +29,10 @@ class Tokenizer:
   Args:
     match_bracket_atoms: (Optional, defaults to False).
       Whether to treat the subcompounds enclosed in [] as separate tokens.
+
+  References:
+    Adilov, Sanjar (2021): Neural Language Modeling for Molecule Generation.
+    ChemRxiv. Preprint. https://doi.org/10.26434/chemrxiv.14700831.v1
   """
 
   match_bracket_atoms: bool = False

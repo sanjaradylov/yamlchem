@@ -108,6 +108,11 @@ class NeuralFPsBlock(mx.gluon.Block):
     D. Duvenaud et al. Convolutional Networks on Graphs for Learning Molecular
     Fingerprints.
     (https://arxiv.org/abs/1609.02907)
+
+  See also:
+    DGL-LifeSci implementation of Neural Fingerprints:
+      `dgllife.model.NFPredictor`
+      `dgllife.model.NFGNN`
   """
 
   def __init__(

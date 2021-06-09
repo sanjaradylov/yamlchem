@@ -54,6 +54,15 @@ class SMILESRNN(mx.gluon.HybridBlock):
     rnn: RNN layer.
     dropout: Feature dropout.
     output: Linear projection (without activation).
+
+  References:
+    1. Segler, Marwin H.S. et al. (2017): Generating focussed molecule
+       libraries for drug discovery with recurrent neural networks.
+       https://arxiv.org/abs/1701.01329.
+    2. Gupta, A. et al. (2018): Generative Recurrent Networks for de Novo Drug
+       Design. Mol. Inf. 37, 1700111.
+    3. Adilov, Sanjar (2021): Neural Language Modeling for Molecule Generation.
+       ChemRxiv. Preprint. https://doi.org/10.26434/chemrxiv.14700831.v1
   """
 
   def __init__(

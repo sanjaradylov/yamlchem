@@ -68,6 +68,10 @@ class BatchifyGraph:
 @dataclass(init=True, repr=True, eq=True, frozen=False)
 class BatchifySMILES:
   """Functor for Gluon data loaders to batchify SMILES sequences.
+
+  References:
+    Adilov, Sanjar (2021): Neural Language Modeling for Molecule Generation.
+    ChemRxiv. Preprint. https://doi.org/10.26434/chemrxiv.14700831.v1
   """
   vocabulary: Vocabulary
   clip_length: Optional[int] = None

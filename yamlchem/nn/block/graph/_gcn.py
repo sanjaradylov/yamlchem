@@ -40,6 +40,9 @@ class GCN(mx.gluon.Block):
       Whether to use batch normalization after dropout.
     dropout: (Optional, defaults to 0.2). The dropout rate.
 
+  See also:
+    `dgl.nn.mxnet.GraphConv`
+
   References:
     T. N. Kipf and M. Welling. 2017. Semi-supervised classification
     with graph convolutional networks. In Proc. of ICLR.

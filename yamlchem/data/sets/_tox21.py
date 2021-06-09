@@ -38,6 +38,10 @@ class Tox21Dataset(dgl.data.DGLDataset):
   Attributes:
     cache_filename: The file path to store serialized data.
     See the documentation of `dgl.data.DGLDataset`.
+
+  References:
+    Tox21 Challenge, http://tripod.nih.gov/tox21/challenge/,
+      accessed 2017-09-27.
   """
 
   # pylint: disable=line-too-long
