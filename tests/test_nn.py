@@ -6,8 +6,9 @@ import mxnet as mx
 
 from yamlchem.data.loader import BatchifyGraph
 from yamlchem.data.sets import ESOLDataset
+from yamlchem.data.splitter import train_test_split
 from yamlchem.nn.block.graph import (GCN, NeuralFPs, NodeGNNPredictor,
-                                     StandardReadout)
+                                     WeightSum)
 from yamlchem.nn.model.graph import train_gnn_predictor
 
 
@@ -36,15 +37,18 @@ def test_convolution_block():
 def test_gcn_model(capsys):
   """Test GCN model (verbosity level = 5 epochs).
   """
-  batch_size, n_epochs, verbose = 32, 99, 5
+  batch_size, n_epochs, valid_ratio, lr, verbose = 32, 40, 0.1, 0.01, 10
   data = ESOLDataset()
+  train_data, valid_data = train_test_split(data, valid_ratio, True, False)
   batchify_fn = BatchifyGraph(labeled=True, masked=False)
-  loader = mx.gluon.data.DataLoader(
-      data, batch_size=batch_size, last_batch='rollover', shuffle=True,
+  dataloader = mx.gluon.data.DataLoader(
+      train_data, batch_size=batch_size, last_batch='rollover', shuffle=True,
       batchify_fn=batchify_fn)
+  valid_dataloader = mx.gluon.data.DataLoader(
+      valid_data, batch_size=batch_size, batchify_fn=batchify_fn)
   loss_fn = mx.gluon.loss.L2Loss(prefix='MSE')
-  lr_scheduler = mx.lr_scheduler.FactorScheduler(len(loader), 0.5, 5e-4)
-  optimizer = mx.optimizer.Adam(learning_rate=5e-3, lr_scheduler=lr_scheduler)
+  lr_scheduler = mx.lr_scheduler.FactorScheduler(len(dataloader), 0.9, lr)
+  optimizer = mx.optimizer.Adam(learning_rate=lr, lr_scheduler=lr_scheduler)
   metric = mx.metric.RMSE('RMSE')
 
   gcn = GCN(
@@ -57,13 +61,15 @@ def test_gcn_model(capsys):
       batchnorm=True,
       residual=True,
   )
-  pool = StandardReadout('mean')
-  model = NodeGNNPredictor(gcn, pool, 1)
+  readout = WeightSum()
+  predictor = NodeGNNPredictor(gcn, readout, 1)
   with capsys.disabled():
-    batch = next(iter(loader))
-    model.initialize()
+    batch = next(iter(dataloader))
+    predictor.initialize()
     print()
-    model.summary(batch.graph, batch.graph.ndata['h'])
+    predictor.summary(batch.graph, batch.graph.ndata['h'])
 
-    train_gnn_predictor(model, 'h', loader, loss_fn, n_epochs, optimizer,
-                        metric=metric, verbose=verbose)
+    train_gnn_predictor(
+        gnn=predictor, feature_name='h', dataloader=dataloader,
+        loss_fn=loss_fn, n_epochs=n_epochs, optimizer=optimizer, metric=metric,
+        valid_dataloader=valid_dataloader, verbose=verbose)
