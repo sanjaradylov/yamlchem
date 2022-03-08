@@ -27,7 +27,7 @@ def train_gnn_predictor(
     n_epochs: int = 1,
     optimizer: OptimizerT = None,
     metric: Optional[mx.metric.EvalMetric] = None,
-    validation_fraction: float = 0.2,
+    valid_dataloader: Optional[mx.gluon.data.DataLoader] = None,
     verbose: int = 0,
     ctx: ContextT = None,
 ):
@@ -43,11 +43,25 @@ def train_gnn_predictor(
     optimizer: (Optional, defaults to SGD).
       MXNet-compatible optimizer or string.
     metric: (Optional). Validation metric.
-    validation_fraction: (Optional, defaults to 0.2).
-      The fraction of `dataloader` to use for evaluation.
+    valid_dataloader: (Optional).
+      Validation data loader to use for evaluation.
     verbose: (Optional, defaults to 0). Log verbosity level.
     ctx: (Optional, defaults to CPU). MXNet-compatible context.
   """
+
+  def prepare_batch():
+    """Get batch data and change context.
+    """
+    graph = batch.graph.to(ctx)
+    features = graph.ndata[feature_name].as_in_context(ctx)
+    labels = batch.label.as_in_context(ctx)
+    if batch.mask is None:
+      masks = None
+    else:
+      masks = batch.mask.as_in_context(ctx)
+
+    return graph, features, labels, masks
+
   ctx = ctx or mx.context.current_context()
   gnn.initialize(ctx=ctx)
 
@@ -64,36 +78,29 @@ def train_gnn_predictor(
       metric.reset()
     start_time = time()
 
-    n_batches = len(dataloader)
-    valid_data_index = n_batches - int(n_batches * validation_fraction)
     valid_losses: List[float] = []
     valid_scores = []
     valid_metric = copy(metric)
     if valid_metric is not None:
       valid_metric.reset()
 
-    for i, batch in enumerate(dataloader):
-      g = batch.graph.to(ctx)
-      h = g.ndata[feature_name].as_in_context(ctx)
-      y = batch.label.as_in_context(ctx)
-      if batch.mask is None:
-        m = None
-      else:
-        m = batch.mask.as_in_context(ctx)
+    for batch in dataloader:
+      g, h, y, m = prepare_batch()
 
-      if i < valid_data_index:
-        with autograd.record():
-          y_hat = gnn(g, h)
-          loss = loss_fn(y_hat, y, m).mean()
-        loss.backward()
-        trainer.step(batch_size=1, ignore_stale_grad=True)
-        losses.append(loss.asscalar())
+      with autograd.record():
+        y_hat = gnn(g, h)
+        loss = loss_fn(y_hat, y, m).mean()
+      loss.backward()
+      trainer.step(batch_size=1, ignore_stale_grad=True)
+      losses.append(loss.asscalar())
 
-        if metric is not None:
-          metric.update(preds=y_hat, labels=y.reshape_like(y_hat))
-          scores.append(metric.get()[1])
+      if metric is not None:
+        metric.update(preds=y_hat, labels=y.reshape_like(y_hat))
+        scores.append(metric.get()[1])
 
-      else:
+    if valid_dataloader is not None:
+      for batch in valid_dataloader:
+        g, h, y, m = prepare_batch()
         y_hat = gnn(g, h)
         valid_losses.append(loss_fn(y_hat, y, m).mean().asscalar())
 
@@ -106,17 +113,20 @@ def train_gnn_predictor(
       end_time = timedelta(seconds=ceil(time() - start_time))
       print(f'Epoch: {epoch:>3}, '
             f'Time: {end_time}, '
-            f'T. {loss_fn.name}: {mean_loss:.3f}',
+            f'T.{loss_fn.name}: {mean_loss:.3f}',
             end='')
 
-      if validation_fraction != 0.0:
+      if valid_dataloader is not None:
         mean_valid_loss = mean(valid_losses)
-        print(f', V. {loss_fn.name}: {mean_valid_loss:.3f}', end='')
+        print(f', V.{loss_fn.name}: {mean_valid_loss:.3f}', end='')
 
       if metric is not None:
         mean_score = mean(scores)
-        mean_valid_score = mean(valid_scores)
-        print(f', T. {metric.name}: {mean_score:.3f}'
-              f', V. {metric.name}: {mean_valid_score:.3f}')
+        print(f', T.{metric.name}: {mean_score:.3f}', end='')
+        if valid_dataloader is not None:
+          mean_valid_score = mean(valid_scores)
+          print(f', V.{metric.name}: {mean_valid_score:.3f}')
+        else:
+          print()
       else:
-        print('\n')
+        print()

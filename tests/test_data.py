@@ -11,6 +11,7 @@ import numpy as np
 from yamlchem.data.loader import batchify_labeled_masked_graphs
 from yamlchem.data.sets import ESOLDataset, Tox21Dataset
 from yamlchem.feature.graph import N_DEFAULT_ATOM_FEATURES
+from yamlchem.data.splitter import train_test_split, train_valid_test_split
 
 
 def test_esol_dataset():
@@ -74,3 +75,16 @@ def test_labeled_graph_data_loader():
   assert batch_graphs.number_of_edges() == graphs.number_of_edges()
   assert batch_labels.shape == labels.shape
   assert batch_masks.shape == masks.shape
+
+
+def test_splitter():
+  data = mx.gluon.data.ArrayDataset(list(range(10)))
+  train_data, valid_data = train_test_split(data, 0.2, False)
+  assert list(train_data) == list(range(8))
+  assert list(valid_data) == [8, 9]
+
+  train_data, valid_data = train_test_split(data, 0.2, True)
+  assert not (set(train_data) & set(valid_data))
+
+  train_data, valid_data, test_data = train_valid_test_split(data, 0.2, 0.1)
+  assert (len(train_data), len(valid_data), len(test_data)) == (7, 2, 1)
